@@ -131,7 +131,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
       {/* Header */}
-      <header className="bg-white shadow-md">
+      <header className="bg-white shadow-md" role="banner">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -148,12 +148,15 @@ export default function Home() {
             <button
               onClick={() => setShowRules(!showRules)}
               className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              aria-label="Toggle game rules"
+              aria-expanded={showRules}
             >
               Rules
             </button>
             <button
               onClick={leaveRoom}
               className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition-colors"
+              aria-label="Leave current game"
             >
               Leave Game
             </button>
@@ -169,6 +172,9 @@ export default function Home() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
           >
             {error}
           </motion.div>
@@ -184,6 +190,9 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
             onClick={() => setShowRules(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rules-title"
           >
             <motion.div
               initial={{ scale: 0.9 }}
@@ -192,7 +201,7 @@ export default function Home() {
               className="bg-white rounded-lg p-6 max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold mb-4">How to Play</h3>
+              <h3 id="rules-title" className="text-xl font-bold mb-4">How to Play</h3>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li>• Click on a tile to select it</li>
                 <li>• Click &quot;Place Left&quot; or &quot;Place Right&quot; to place it</li>
@@ -204,6 +213,7 @@ export default function Home() {
               <button
                 onClick={() => setShowRules(false)}
                 className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg"
+                aria-label="Close rules dialog"
               >
                 Close
               </button>
@@ -213,12 +223,12 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Main game area */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6" role="main">
         <div className="grid lg:grid-cols-[1fr_300px] gap-6">
           {/* Left side - Game board and controls */}
           <div className="space-y-4">
             {/* Game info */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white rounded-lg shadow-md p-4" role="status" aria-live="polite" aria-atomic="true">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm text-gray-600">Current Turn</div>
@@ -255,11 +265,12 @@ export default function Home() {
                     )}
                   </div>
                 )}
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap" role="group" aria-label="Game controls">
                   <button
                     onClick={() => handlePlaceTile('left')}
                     disabled={!selectedTile}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-shadow"
+                    aria-label={selectedTile ? `Place tile ${selectedTile.left}-${selectedTile.right} on the left side` : 'Place tile on left side (select a tile first)'}
                   >
                     Place Left
                   </button>
@@ -267,6 +278,7 @@ export default function Home() {
                     onClick={() => handlePlaceTile('right')}
                     disabled={!selectedTile}
                     className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-shadow"
+                    aria-label={selectedTile ? `Place tile ${selectedTile.left}-${selectedTile.right} on the right side` : 'Place tile on right side (select a tile first)'}
                   >
                     Place Right
                   </button>
@@ -274,6 +286,7 @@ export default function Home() {
                     <button
                       onClick={drawTile}
                       className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-shadow"
+                      aria-label={`Draw a tile from the boneyard (${gameState.boneyard.length} tiles remaining)`}
                     >
                       Draw Tile
                     </button>
@@ -282,6 +295,7 @@ export default function Home() {
                     <button
                       onClick={handlePass}
                       className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-shadow"
+                      aria-label="Pass your turn (no valid moves available)"
                     >
                       Pass Turn
                     </button>
@@ -303,7 +317,7 @@ export default function Home() {
           </div>
 
           {/* Right side - Other players */}
-          <div className="space-y-4">
+          <aside className="space-y-4" role="complementary" aria-label="Other players">
             <h3 className="text-lg font-semibold text-gray-700">Players</h3>
             {gameState.players
               .filter(p => p.id !== currentPlayerId)
@@ -338,10 +352,10 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-              ))}
-          </div>
+              )}
+          </aside>
         </div>
-      </div>
+      </main>
 
       {/* Game over modal */}
       {gameState.isGameOver && (

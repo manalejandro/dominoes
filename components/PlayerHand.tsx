@@ -20,7 +20,7 @@ export function PlayerHand({
   validTileIds,
 }: PlayerHandProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4">
+    <div className="bg-white rounded-lg shadow-lg p-4" role="region" aria-label="Your tiles">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
@@ -63,6 +63,16 @@ export function PlayerHand({
                   className={`relative ${
                     isPlayable && isCurrentPlayer ? 'cursor-pointer' : 'cursor-not-allowed'
                   }`}
+                  role="button"
+                  tabIndex={isPlayable && isCurrentPlayer ? 0 : -1}
+                  aria-label={`Tile ${tile.left}-${tile.right}${isSelected ? ' (selected)' : ''}${!isPlayable ? ' (cannot be played)' : ''}`}
+                  aria-pressed={isSelected}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && isPlayable && isCurrentPlayer) {
+                      e.preventDefault();
+                      onTileClick(tile.id);
+                    }
+                  }}
                 >
                   <DominoTileSVG
                     tile={tile}
@@ -96,6 +106,8 @@ function DominoTileSVG({ tile, isSelected, isPlayable }: DominoTileSVGProps) {
       className={`transition-all ${
         isSelected ? 'ring-4 ring-blue-500 rounded' : ''
       } ${!isPlayable ? 'opacity-50' : ''}`}
+      role="img"
+      aria-label={`Domino tile: ${tile.left} and ${tile.right}`}
     >
       {/* Background */}
       <rect

@@ -17,6 +17,9 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-over-title"
     >
       <motion.div
         initial={{ scale: 0.8, y: 50 }}
@@ -32,7 +35,7 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
           >
             {winner ? '🏆' : '🤝'}
           </motion.div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          <h2 id="game-over-title" className="text-3xl font-bold text-gray-800 mb-2">
             {winner ? 'Game Over!' : 'Game Blocked!'}
           </h2>
           {winner && (
@@ -91,6 +94,7 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
             whileTap={{ scale: 0.98 }}
             onClick={onPlayAgain}
             className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-shadow"
+            aria-label="Start a new game"
           >
             Play Again
           </motion.button>
@@ -100,8 +104,9 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
             whileTap={{ scale: 0.98 }}
             onClick={onLeave}
             className="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+            aria-label="Leave game and return to main menu"
           >
-            Back to Menu
+            Leave Game
           </motion.button>
         </div>
       </motion.div>

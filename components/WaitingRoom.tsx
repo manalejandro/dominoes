@@ -18,7 +18,7 @@ export function WaitingRoom({ roomId, players, currentPlayerId, onReady, onLeave
   const canStart = players.length >= 2 && players.every(p => p.isReady);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4" role="main">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -102,11 +102,12 @@ export function WaitingRoom({ roomId, players, currentPlayerId, onReady, onLeave
               whileTap={{ scale: 0.98 }}
               onClick={onReady}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-shadow"
+              aria-label="Mark yourself as ready to start the game"
             >
               Ready to Play
             </motion.button>
           ) : (
-            <div className="w-full bg-green-100 border-2 border-green-500 text-green-700 py-3 rounded-lg font-semibold text-center">
+            <div className="w-full bg-green-100 border-2 border-green-500 text-green-700 py-3 rounded-lg font-semibold text-center" role="status" aria-live="polite">
               {canStart ? 'Starting game...' : players.length < 2 ? 'Waiting for at least 1 more player...' : 'Waiting for other players...'}
             </div>
           )}
@@ -116,12 +117,13 @@ export function WaitingRoom({ roomId, players, currentPlayerId, onReady, onLeave
             whileTap={{ scale: 0.98 }}
             onClick={onLeave}
             className="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+            aria-label="Leave the waiting room and return to menu"
           >
             Leave Room
           </motion.button>
         </div>
 
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg" role="region" aria-label="Game rules">
           <h4 className="font-semibold text-blue-900 mb-2">Game Rules</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• 2-4 players can play (minimum 2 required)</li>
@@ -132,6 +134,6 @@ export function WaitingRoom({ roomId, players, currentPlayerId, onReady, onLeave
           </ul>
         </div>
       </motion.div>
-    </div>
+    </main>
   );
 }

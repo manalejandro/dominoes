@@ -163,7 +163,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   };
 
   return (
-    <div className={className}>
+    <div className={className} role="region" aria-label="Game board">
       <canvas
         ref={canvasRef}
         width={width}
@@ -173,6 +173,8 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        role="img"
+        aria-label={`Domino board with ${placedTiles.length} tiles placed`}
       />
       {placedTiles.length > 0 && (
         <div className="mt-2 text-center text-sm text-gray-600">
