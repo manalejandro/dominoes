@@ -48,12 +48,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
 
     socket.on('connect', () => {
-      console.log('Connected to socket server');
       set({ isConnected: true, socket });
     });
 
     socket.on('disconnect', () => {
-      console.log('Disconnected from socket server');
       set({ isConnected: false });
     });
 
@@ -166,7 +164,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     
     // Modo AI (offline)
     if (roomId?.startsWith('AI-') && gameState) {
-      console.log('AI mode: executing move', move);
       const newGameState = executeMove(gameState, move);
       set({ gameState: newGameState, selectedTile: null });
       
@@ -182,7 +179,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     
     // Modo multijugador (online)
     if (socket && roomId) {
-      console.log('Online mode: sending move to server', move);
       socket.emit('make-move', roomId, move);
       set({ selectedTile: null });
     }
@@ -200,7 +196,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       
       // Check if there are tiles in the boneyard
       if (gameState.boneyard.length === 0) {
-        console.log('No tiles in boneyard');
         return;
       }
       
@@ -223,8 +218,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
           players: updatedPlayers,
         }
       });
-      
-      console.log('Drew tile in AI mode:', drawnTile);
     } 
     // Online mode - send to server
     else if (socket && roomId) {

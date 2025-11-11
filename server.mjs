@@ -141,8 +141,6 @@ app.prepare().then(() => {
   });
 
   io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-
     socket.on('create-room', () => {
       const roomId = generateRoomId();
       const gameState = createGameState(roomId);
@@ -150,7 +148,6 @@ app.prepare().then(() => {
       
       socket.join(roomId);
       socket.emit('room-created', roomId);
-      console.log('Room created:', roomId);
     });
 
     socket.on('join-room', (roomId, playerName) => {
@@ -186,8 +183,6 @@ app.prepare().then(() => {
       socket.join(roomId);
       socket.emit('room-joined', gameState, socket.id);
       socket.to(roomId).emit('player-joined', player);
-      
-      console.log(`Player ${playerName} joined room ${roomId}`);
     });
 
     socket.on('player-ready', (roomId) => {
@@ -205,18 +200,14 @@ app.prepare().then(() => {
       if (allReady) {
         const startedGame = startGame(roomId);
         io.to(roomId).emit('game-started', startedGame);
-        console.log('Game started in room:', roomId);
       } else {
         io.to(roomId).emit('game-state-updated', gameState);
       }
     });
 
     socket.on('make-move', (roomId, move) => {
-      console.log('Received make-move:', { roomId, move, socketId: socket.id });
-      
       const gameState = gameRooms.get(roomId);
       if (!gameState) {
-        console.log('Game state not found for room:', roomId);
         socket.emit('error', 'Game not found');
         return;
       }
@@ -224,26 +215,22 @@ app.prepare().then(() => {
       const currentPlayer = gameState.players[gameState.currentPlayerIndex];
       
       if (currentPlayer.id !== socket.id) {
-        console.log('Not player turn:', { currentPlayerId: currentPlayer.id, socketId: socket.id });
         socket.emit('invalid-move', 'Not your turn');
         return;
       }
 
       const player = gameState.players.find(p => p.id === move.playerId);
       if (!player) {
-        console.log('Player not found:', move.playerId);
         socket.emit('error', 'Player not found');
         return;
       }
 
       if (move.pass) {
-        console.log('Player passing turn');
         gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
         gameState.turnsPassed++;
       } else {
         const tileIndex = player.tiles.findIndex(t => t.id === move.tile.id);
         if (tileIndex === -1) {
-          console.log('Tile not found in player hand:', move.tile.id);
           socket.emit('invalid-move', 'Tile not found');
           return;
         }
@@ -256,20 +243,16 @@ app.prepare().then(() => {
           );
           
           if (!targetEnd) {
-            console.log('Invalid side:', move.side);
             socket.emit('invalid-move', 'Invalid side');
             return;
           }
           
           const canPlace = move.tile.left === targetEnd.value || move.tile.right === targetEnd.value;
           if (!canPlace) {
-            console.log('Tile does not match:', { tile: move.tile, targetEnd: targetEnd.value });
             socket.emit('invalid-move', 'Tile does not match board end');
             return;
           }
         }
-
-        console.log('Placing tile:', { tile: move.tile, side: move.side });
 
         // Remover la ficha de la mano del jugador
         player.tiles.splice(tileIndex, 1);
@@ -313,7 +296,6 @@ app.prepare().then(() => {
               left: move.tile.right,
               right: move.tile.left,
             };
-            console.log('Flipping tile from', move.tile, 'to', tileToPlace);
           }
           
           if (move.side === 'right') {
@@ -368,10 +350,8 @@ app.prepare().then(() => {
         }
       }
 
-      console.log('Updating game state and emitting to room:', roomId);
       gameRooms.set(roomId, gameState);
       io.to(roomId).emit('game-state-updated', gameState);
-      console.log('Game state updated successfully');
     });
 
     socket.on('draw-tile', (roomId) => {
@@ -398,8 +378,6 @@ app.prepare().then(() => {
     });
 
     socket.on('leave-room', (roomId) => {
-      console.log('Player leaving room:', { socketId: socket.id, roomId });
-      
       const gameState = gameRooms.get(roomId);
       if (!gameState) return;
 
@@ -417,7 +395,6 @@ app.prepare().then(() => {
       if (gameState.players.length === 0) {
         // No players left, delete room
         gameRooms.delete(roomId);
-        console.log('Room deleted - no players remaining:', roomId);
       } else {
         // Check if only one human player remains
         const remainingHumanPlayers = gameState.players.filter(p => !p.isAI);
@@ -428,7 +405,6 @@ app.prepare().then(() => {
           gameState.isGameOver = true;
           gameState.winner = winner.id;
           gameState.gameMode = 'finished';
-          console.log(`Player ${winner.name} wins - only player remaining in room ${roomId}`);
         }
         
         // Adjust currentPlayerIndex if needed
@@ -439,7 +415,6 @@ app.prepare().then(() => {
         gameRooms.set(roomId, gameState);
         io.to(roomId).emit('player-left', socket.id);
         io.to(roomId).emit('game-state-updated', gameState);
-        console.log(`Player ${leavingPlayer.name} left room ${roomId}. ${gameState.players.length} players remaining.`);
       }
     });
 
@@ -457,7 +432,6 @@ app.prepare().then(() => {
 
           if (gameState.players.length === 0) {
             gameRooms.delete(roomId);
-            console.log('Room deleted:', roomId);
           } else {
             // Check if only one human player remains after disconnect
             const remainingHumanPlayers = gameState.players.filter(p => !p.isAI);
@@ -468,7 +442,6 @@ app.prepare().then(() => {
               gameState.isGameOver = true;
               gameState.winner = winner.id;
               gameState.gameMode = 'finished';
-              console.log(`Player ${winner.name} wins - only player remaining in room ${roomId}`);
             }
             
             // Adjust currentPlayerIndex if needed
@@ -482,7 +455,6 @@ app.prepare().then(() => {
           }
         }
       }
-      console.log('Client disconnected:', socket.id);
     });
   });
 

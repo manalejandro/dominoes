@@ -60,14 +60,6 @@ export default function Home() {
   const handlePlaceTile = (side: 'left' | 'right') => {
     if (!selectedTile || !currentPlayerId || !gameState) return;
 
-    console.log('handlePlaceTile called', { 
-      selectedTile, 
-      side, 
-      currentPlayerId,
-      boardEnds: gameState.boardEnds,
-      validMoves 
-    });
-
     // Verificar si el movimiento es válido
     const isValid = validMoves.some(m => 
       m.tile.id === selectedTile.id && 
@@ -75,12 +67,10 @@ export default function Home() {
     );
 
     if (!isValid && gameState.boardEnds.length > 0) {
-      console.error('Invalid move: tile cannot be placed on this side', { selectedTile, side, validMoves });
       setError(`Cannot place tile ${selectedTile.left}-${selectedTile.right} on the ${side} side. It doesn't match the board end.`);
       return;
     }
 
-    console.log('Making move:', { playerId: currentPlayerId, tile: selectedTile, side });
     makeMove({
       playerId: currentPlayerId,
       tile: selectedTile,
