@@ -155,8 +155,8 @@ export function calculateTilePosition(
 
   // Calculate how many tiles on this side to determine direction changes
   const tilesOnSide = side === 'right' ? board.length - 1 : 0;
-  const directionIndex = Math.floor(tilesOnSide / 4); // Change direction every 4 tiles
-  const positionInDirection = tilesOnSide % 4;
+  const directionIndex = Math.floor(tilesOnSide / 3); // Change direction every 3 tiles for tighter spiral
+  const positionInDirection = tilesOnSide % 3;
 
   if (side === 'right') {
     const direction = directionIndex % 4; // 0: right, 1: down, 2: left, 3: up
