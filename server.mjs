@@ -228,6 +228,25 @@ app.prepare().then(() => {
       if (move.pass) {
         gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
         gameState.turnsPassed++;
+        
+        // Check if game is blocked (all players have passed consecutively)
+        if (gameState.turnsPassed >= gameState.players.length) {
+          // Game is blocked - determine winner by lowest score
+          let lowestScore = Infinity;
+          let winnerId = '';
+          
+          gameState.players.forEach(p => {
+            const score = p.tiles.reduce((sum, tile) => sum + tile.left + tile.right, 0);
+            if (score < lowestScore) {
+              lowestScore = score;
+              winnerId = p.id;
+            }
+          });
+          
+          gameState.isGameOver = true;
+          gameState.winner = winnerId;
+          gameState.gameMode = 'finished';
+        }
       } else {
         const tileIndex = player.tiles.findIndex(t => t.id === move.tile.id);
         if (tileIndex === -1) {

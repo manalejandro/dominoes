@@ -224,10 +224,36 @@ export function executeMove(
   if (!player) return gameState;
 
   if (move.pass) {
+    const newTurnsPassed = gameState.turnsPassed + 1;
+    
+    // Check if game is blocked (all players have passed consecutively)
+    if (newTurnsPassed >= gameState.players.length) {
+      // Game is blocked - determine winner by lowest score
+      let lowestScore = Infinity;
+      let winnerId = '';
+      
+      gameState.players.forEach(p => {
+        const score = calculateScore(p.tiles);
+        if (score < lowestScore) {
+          lowestScore = score;
+          winnerId = p.id;
+        }
+      });
+      
+      return {
+        ...gameState,
+        currentPlayerIndex: (gameState.currentPlayerIndex + 1) % gameState.players.length,
+        turnsPassed: newTurnsPassed,
+        isGameOver: true,
+        winner: winnerId,
+        gameMode: 'finished',
+      };
+    }
+    
     return {
       ...gameState,
       currentPlayerIndex: (gameState.currentPlayerIndex + 1) % gameState.players.length,
-      turnsPassed: gameState.turnsPassed + 1,
+      turnsPassed: newTurnsPassed,
     };
   }
 
