@@ -38,9 +38,9 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   // Auto-center the board on first tile
   useEffect(() => {
     if (placedTiles.length === 1 && offset.x === 0 && offset.y === 0) {
-      setOffset({ x: width / 2 - 400, y: height / 2 - 300 });
+      setOffset({ x: canvasSize.width / 2 - 400, y: canvasSize.height / 2 - 300 });
     }
-  }, [placedTiles.length, width, height, offset]);
+  }, [placedTiles.length, canvasSize.width, canvasSize.height, offset]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -50,25 +50,25 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
     // Draw background pattern
     ctx.fillStyle = '#f3f4f6';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
     
     // Draw grid pattern
     ctx.strokeStyle = '#e5e7eb';
     ctx.lineWidth = 1;
-    for (let x = 0; x < width; x += 40) {
+    for (let x = 0; x < canvasSize.width; x += 40) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, canvasSize.height);
       ctx.stroke();
     }
-    for (let y = 0; y < height; y += 40) {
+    for (let y = 0; y < canvasSize.height; y += 40) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.lineTo(canvasSize.width, y);
       ctx.stroke();
     }
 
@@ -162,7 +162,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
       }
     });
 
-  }, [placedTiles, offset, width, height]);
+  }, [placedTiles, offset, canvasSize.width, canvasSize.height]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(true);
