@@ -17,6 +17,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   const [canvasSize, setCanvasSize] = useState({ width, height });
+  const [zoom, setZoom] = useState(1);
 
   // Handle responsive canvas sizing
   useEffect(() => {
@@ -35,12 +36,51 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     return () => window.removeEventListener('resize', updateSize);
   }, [width, height]);
 
-  // Auto-center the board on first tile
+  // Auto-zoom and auto-center to fit all tiles
   useEffect(() => {
-    if (placedTiles.length === 1 && offset.x === 0 && offset.y === 0) {
-      setOffset({ x: canvasSize.width / 2 - 400, y: canvasSize.height / 2 - 300 });
-    }
-  }, [placedTiles.length, canvasSize.width, canvasSize.height, offset]);
+    if (placedTiles.length === 0) return;
+
+    // Calculate bounding box of all tiles
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    placedTiles.forEach(placedTile => {
+      const { position, orientation } = placedTile;
+      const tileWidth = orientation === 'horizontal' ? 60 : 30;
+      const tileHeight = orientation === 'horizontal' ? 30 : 60;
+      
+      minX = Math.min(minX, position.x);
+      minY = Math.min(minY, position.y);
+      maxX = Math.max(maxX, position.x + tileWidth);
+      maxY = Math.max(maxY, position.y + tileHeight);
+    });
+
+    // Add padding
+    const padding = 50;
+    minX -= padding;
+    minY -= padding;
+    maxX += padding;
+    maxY += padding;
+
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+
+    // Calculate zoom to fit all tiles in viewport
+    const isMobile = window.innerWidth < 640;
+    const zoomX = canvasSize.width / contentWidth;
+    const zoomY = canvasSize.height / contentHeight;
+    const newZoom = Math.min(zoomX, zoomY, isMobile ? 1 : 1.5); // Limit max zoom
+    
+    // Calculate center position
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    // Set offset to center the content
+    const newOffsetX = canvasSize.width / 2 - centerX * newZoom;
+    const newOffsetY = canvasSize.height / 2 - centerY * newZoom;
+
+    setZoom(newZoom);
+    setOffset({ x: newOffsetX, y: newOffsetY });
+  }, [placedTiles, canvasSize.width, canvasSize.height]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -78,28 +118,30 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
       const tileWidth = orientation === 'horizontal' ? 60 : 30;
       const tileHeight = orientation === 'horizontal' ? 30 : 60;
 
-      const x = position.x + offset.x;
-      const y = position.y + offset.y;
+      const x = position.x * zoom + offset.x;
+      const y = position.y * zoom + offset.y;
+      const scaledWidth = tileWidth * zoom;
+      const scaledHeight = tileHeight * zoom;
 
       // Draw tile background with shadow
       ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 5;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      ctx.shadowBlur = 5 * zoom;
+      ctx.shadowOffsetX = 2 * zoom;
+      ctx.shadowOffsetY = 2 * zoom;
 
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#1f2937';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 * zoom;
 
-      const radius = 4;
+      const radius = 4 * zoom;
       ctx.beginPath();
       ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + tileWidth - radius, y);
-      ctx.quadraticCurveTo(x + tileWidth, y, x + tileWidth, y + radius);
-      ctx.lineTo(x + tileWidth, y + tileHeight - radius);
-      ctx.quadraticCurveTo(x + tileWidth, y + tileHeight, x + tileWidth - radius, y + tileHeight);
-      ctx.lineTo(x + radius, y + tileHeight);
-      ctx.quadraticCurveTo(x, y + tileHeight, x, y + tileHeight - radius);
+      ctx.lineTo(x + scaledWidth - radius, y);
+      ctx.quadraticCurveTo(x + scaledWidth, y, x + scaledWidth, y + radius);
+      ctx.lineTo(x + scaledWidth, y + scaledHeight - radius);
+      ctx.quadraticCurveTo(x + scaledWidth, y + scaledHeight, x + scaledWidth - radius, y + scaledHeight);
+      ctx.lineTo(x + radius, y + scaledHeight);
+      ctx.quadraticCurveTo(x, y + scaledHeight, x, y + scaledHeight - radius);
       ctx.lineTo(x, y + radius);
       ctx.quadraticCurveTo(x, y, x + radius, y);
       ctx.closePath();
@@ -111,19 +153,19 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
 
       // Draw center divider
       ctx.strokeStyle = '#6b7280';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1 * zoom;
       ctx.beginPath();
       if (orientation === 'horizontal') {
-        ctx.moveTo(x + tileWidth / 2, y);
-        ctx.lineTo(x + tileWidth / 2, y + tileHeight);
+        ctx.moveTo(x + scaledWidth / 2, y);
+        ctx.lineTo(x + scaledWidth / 2, y + scaledHeight);
       } else {
-        ctx.moveTo(x, y + tileHeight / 2);
-        ctx.lineTo(x + tileWidth, y + tileHeight / 2);
+        ctx.moveTo(x, y + scaledHeight / 2);
+        ctx.lineTo(x + scaledWidth, y + scaledHeight / 2);
       }
       ctx.stroke();
 
       // Draw dots
-      const dotRadius = 2.5;
+      const dotRadius = Math.max(2, 2.5 * zoom);
       ctx.fillStyle = '#1f2937';
 
       const drawDots = (value: number, dotX: number, dotY: number, size: number) => {
@@ -136,33 +178,33 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
       };
 
       if (orientation === 'horizontal') {
-        const leftX = x + tileWidth / 4;
-        const rightX = x + (tileWidth * 3) / 4;
-        const centerY = y + tileHeight / 2;
-        const dotAreaSize = tileWidth / 2 - 6;
+        const leftX = x + scaledWidth / 4;
+        const rightX = x + (scaledWidth * 3) / 4;
+        const centerY = y + scaledHeight / 2;
+        const dotAreaSize = (scaledWidth / 2 - 6 * zoom);
 
         drawDots(tile.left, leftX, centerY, dotAreaSize);
         drawDots(tile.right, rightX, centerY, dotAreaSize);
       } else {
-        const topY = y + tileHeight / 4;
-        const bottomY = y + (tileHeight * 3) / 4;
-        const centerX = x + tileWidth / 2;
-        const dotAreaSize = tileHeight / 2 - 6;
+        const topY = y + scaledHeight / 4;
+        const bottomY = y + (scaledHeight * 3) / 4;
+        const centerX = x + scaledWidth / 2;
+        const dotAreaSize = (scaledHeight / 2 - 6 * zoom);
 
         drawDots(tile.left, centerX, topY, dotAreaSize);
         drawDots(tile.right, centerX, bottomY, dotAreaSize);
       }
 
       // Draw tile number for debugging (optional)
-      if (placedTiles.length < 20) {
+      if (placedTiles.length < 20 && zoom > 0.5) {
         ctx.fillStyle = '#9ca3af';
-        ctx.font = '10px sans-serif';
+        ctx.font = `${10 * zoom}px sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(`#${index + 1}`, x + tileWidth / 2, y - 5);
+        ctx.fillText(`#${index + 1}`, x + scaledWidth / 2, y - 5 * zoom);
       }
     });
 
-  }, [placedTiles, offset, canvasSize.width, canvasSize.height]);
+  }, [placedTiles, offset, zoom, canvasSize.width, canvasSize.height]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(true);
