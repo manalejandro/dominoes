@@ -130,7 +130,7 @@ export function isValidMove(tile: DominoTile, side: 'left' | 'right', boardEnds:
   return canPlaceTile(tile, targetEnd.value);
 }
 
-// Calculate tile position on board
+// Calculate tile position on board with multi-directional placement
 export function calculateTilePosition(
   board: PlacedTile[],
   side: 'left' | 'right',
@@ -153,20 +153,90 @@ export function calculateTilePosition(
   let orientation: 'horizontal' | 'vertical' = 'horizontal';
   let rotation = 0;
 
+  // Calculate how many tiles on this side to determine direction changes
+  const tilesOnSide = side === 'right' ? board.length - 1 : 0;
+  const directionIndex = Math.floor(tilesOnSide / 4); // Change direction every 4 tiles
+  const positionInDirection = tilesOnSide % 4;
+
   if (side === 'right') {
-    const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
-    position = {
-      x: lastTile.position.x + offset + spacing,
-      y: lastTile.position.y,
-    };
-    orientation = isDouble ? 'vertical' : 'horizontal';
+    const direction = directionIndex % 4; // 0: right, 1: down, 2: left, 3: up
+    
+    switch (direction) {
+      case 0: // Going right (horizontal)
+        orientation = isDouble ? 'vertical' : 'horizontal';
+        position = {
+          x: lastTile.position.x + (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) + spacing,
+          y: lastTile.position.y,
+        };
+        break;
+      case 1: // Going down (vertical)
+        orientation = isDouble ? 'horizontal' : 'vertical';
+        position = {
+          x: lastTile.position.x,
+          y: lastTile.position.y + (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) + spacing,
+        };
+        break;
+      case 2: // Going left (horizontal)
+        orientation = isDouble ? 'vertical' : 'horizontal';
+        position = {
+          x: lastTile.position.x - (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) - spacing,
+          y: lastTile.position.y,
+        };
+        break;
+      case 3: // Going up (vertical)
+        orientation = isDouble ? 'horizontal' : 'vertical';
+        position = {
+          x: lastTile.position.x,
+          y: lastTile.position.y - (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) - spacing,
+        };
+        break;
+      default:
+        orientation = 'horizontal';
+        position = {
+          x: lastTile.position.x + tileWidth + spacing,
+          y: lastTile.position.y,
+        };
+    }
   } else {
-    const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
-    position = {
-      x: lastTile.position.x - offset - spacing,
-      y: lastTile.position.y,
-    };
-    orientation = isDouble ? 'vertical' : 'horizontal';
+    // Left side uses same logic but in reverse
+    const direction = directionIndex % 4; // 0: left, 1: up, 2: right, 3: down
+    
+    switch (direction) {
+      case 0: // Going left (horizontal)
+        orientation = isDouble ? 'vertical' : 'horizontal';
+        position = {
+          x: lastTile.position.x - (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) - spacing,
+          y: lastTile.position.y,
+        };
+        break;
+      case 1: // Going up (vertical)
+        orientation = isDouble ? 'horizontal' : 'vertical';
+        position = {
+          x: lastTile.position.x,
+          y: lastTile.position.y - (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) - spacing,
+        };
+        break;
+      case 2: // Going right (horizontal)
+        orientation = isDouble ? 'vertical' : 'horizontal';
+        position = {
+          x: lastTile.position.x + (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) + spacing,
+          y: lastTile.position.y,
+        };
+        break;
+      case 3: // Going down (vertical)
+        orientation = isDouble ? 'horizontal' : 'vertical';
+        position = {
+          x: lastTile.position.x,
+          y: lastTile.position.y + (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) + spacing,
+        };
+        break;
+      default:
+        orientation = 'horizontal';
+        position = {
+          x: lastTile.position.x - tileWidth - spacing,
+          y: lastTile.position.y,
+        };
+    }
   }
 
   return { position, orientation, rotation };
