@@ -12,9 +12,28 @@ interface GameBoardProps {
 
 export function GameBoard({ placedTiles, width = 1200, height = 700, className = '' }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState<Position>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
+  const [canvasSize, setCanvasSize] = useState({ width, height });
+
+  // Handle responsive canvas sizing
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const isMobile = window.innerWidth < 640;
+        const newWidth = isMobile ? containerWidth - 32 : Math.min(width, containerWidth);
+        const newHeight = isMobile ? 400 : height;
+        setCanvasSize({ width: newWidth, height: newHeight });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [width, height]);
 
   // Auto-center the board on first tile
   useEffect(() => {
@@ -163,21 +182,23 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   };
 
   return (
-    <div className={className} role="region" aria-label="Game board">
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className={`border border-gray-300 rounded-lg ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+    <div ref={containerRef} className={className} role="region" aria-label="Game board">
+      <div className="w-full overflow-x-auto">
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.width}
+          height={canvasSize.height}
+          className={`border border-gray-300 rounded-lg mx-auto ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         role="img"
         aria-label={`Domino board with ${placedTiles.length} tiles placed`}
-      />
+        />
+      </div>
       {placedTiles.length > 0 && (
-        <div className="mt-2 text-center text-sm text-gray-600">
+        <div className="mt-2 text-center text-xs sm:text-sm text-gray-600">
           Drag to pan • {placedTiles.length} tiles placed
         </div>
       )}

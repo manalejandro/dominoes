@@ -132,22 +132,22 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
       {/* Header */}
       <header className="bg-white shadow-md" role="banner">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Dominoes
             </h1>
             {roomId && (
-              <div className="hidden sm:block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-mono">
+              <div className="hidden xs:block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-2 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-mono">
                 {roomId}
               </div>
             )}
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowRules(!showRules)}
-              className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+              className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-2"
               aria-label="Toggle game rules"
               aria-expanded={showRules}
             >
@@ -155,10 +155,10 @@ export default function Home() {
             </button>
             <button
               onClick={leaveRoom}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition-colors"
+              className="bg-red-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-red-600 transition-colors"
               aria-label="Leave current game"
             >
-              Leave Game
+              Leave
             </button>
           </div>
         </div>
@@ -223,22 +223,22 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Main game area */}
-      <main className="max-w-7xl mx-auto px-4 py-6" role="main">
-        <div className="grid lg:grid-cols-[1fr_300px] gap-6">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6" role="main">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 lg:gap-6">
           {/* Left side - Game board and controls */}
           <div className="space-y-4">
             {/* Game info */}
-            <div className="bg-white rounded-lg shadow-md p-4" role="status" aria-live="polite" aria-atomic="true">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-600">Current Turn</div>
-                  <div className="text-xl font-bold text-gray-800">
+            <div className="bg-white rounded-lg shadow-md p-3 sm:p-4" role="status" aria-live="polite" aria-atomic="true">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="min-w-0">
+                  <div className="text-xs sm:text-sm text-gray-600">Current Turn</div>
+                  <div className="text-lg sm:text-xl font-bold text-gray-800 truncate">
                     {gameState.players[gameState.currentPlayerIndex]?.name}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-gray-600">Boneyard</div>
-                  <div className="text-xl font-bold text-gray-800">
+                  <div className="text-xs sm:text-sm text-gray-600">Boneyard</div>
+                  <div className="text-lg sm:text-xl font-bold text-gray-800">
                     {gameState.boneyard.length} tiles
                   </div>
                 </div>
@@ -253,19 +253,19 @@ export default function Home() {
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="bg-white rounded-lg shadow-md p-4"
+                className="bg-white rounded-lg shadow-md p-3 sm:p-4"
               >
                 {selectedTile && (
-                  <div className="mb-3 text-center text-sm text-gray-600">
+                  <div className="mb-3 text-center text-xs sm:text-sm text-gray-600">
                     Selected: <span className="font-bold">{selectedTile.left}-{selectedTile.right}</span>
                     {gameState.boardEnds.length > 0 && (
-                      <div className="mt-1">
+                      <div className="mt-1 text-xs">
                         Board ends: <span className="font-bold">{gameState.boardEnds[0]?.value}</span> (left) | <span className="font-bold">{gameState.boardEnds[1]?.value}</span> (right)
                       </div>
                     )}
                   </div>
                 )}
-                <div className="flex items-center gap-3 flex-wrap" role="group" aria-label="Game controls">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap" role="group" aria-label="Game controls">
                   <button
                     onClick={() => handlePlaceTile('left')}
                     disabled={!selectedTile}
@@ -317,27 +317,27 @@ export default function Home() {
           </div>
 
           {/* Right side - Other players */}
-          <aside className="space-y-4" role="complementary" aria-label="Other players">
-            <h3 className="text-lg font-semibold text-gray-700">Players</h3>
+          <aside className="space-y-4 order-first lg:order-last" role="complementary" aria-label="Other players">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-700">Players</h3>
             {gameState.players
               .filter(p => p.id !== currentPlayerId)
               .map(player => (
-                <div key={player.id} className="bg-white rounded-lg shadow-md p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                <div key={player.id} className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-white text-sm sm:text-base ${
                       player.isAI ? 'bg-purple-500' : 'bg-blue-500'
                     }`}>
                       {player.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-800">{player.name}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-gray-800 text-sm sm:text-base truncate">{player.name}</div>
                       <div className="text-xs text-gray-500">
                         {player.tiles.length} tiles
                         {player.isAI && ' (AI)'}
                       </div>
                     </div>
                     {gameState.players[gameState.currentPlayerIndex]?.id === player.id && (
-                      <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                      <div className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold whitespace-nowrap">
                         Turn
                       </div>
                     )}
