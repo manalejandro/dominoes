@@ -130,7 +130,7 @@ export function isValidMove(tile: DominoTile, side: 'left' | 'right', boardEnds:
   return canPlaceTile(tile, targetEnd.value);
 }
 
-// Calculate tile position on board with multi-directional placement
+// Calculate tile position on board with smart wrapping to keep tiles visible
 export function calculateTilePosition(
   board: PlacedTile[],
   side: 'left' | 'right',
@@ -153,89 +153,84 @@ export function calculateTilePosition(
   let orientation: 'horizontal' | 'vertical' = 'horizontal';
   let rotation = 0;
 
-  // Calculate how many tiles on this side to determine direction changes
+  // Count tiles on current side to determine wrapping
   const tilesOnSide = side === 'right' ? board.length - 1 : 0;
-  const directionIndex = Math.floor(tilesOnSide / 3); // Change direction every 3 tiles for tighter spiral
-  const positionInDirection = tilesOnSide % 3;
-
+  const segmentLength = 5; // Change direction every 5 tiles
+  const segmentIndex = Math.floor(tilesOnSide / segmentLength);
+  
   if (side === 'right') {
-    const direction = directionIndex % 4; // 0: right, 1: down, 2: left, 3: up
+    // Alternate between horizontal right and vertical down
+    const isVerticalSegment = segmentIndex % 2 === 1;
     
-    switch (direction) {
-      case 0: // Going right (horizontal)
-        orientation = isDouble ? 'vertical' : 'horizontal';
-        position = {
-          x: lastTile.position.x + (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) + spacing,
-          y: lastTile.position.y,
-        };
-        break;
-      case 1: // Going down (vertical)
-        orientation = isDouble ? 'horizontal' : 'vertical';
-        position = {
-          x: lastTile.position.x,
-          y: lastTile.position.y + (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) + spacing,
-        };
-        break;
-      case 2: // Going left (horizontal)
-        orientation = isDouble ? 'vertical' : 'horizontal';
-        position = {
-          x: lastTile.position.x - (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) - spacing,
-          y: lastTile.position.y,
-        };
-        break;
-      case 3: // Going up (vertical)
-        orientation = isDouble ? 'horizontal' : 'vertical';
-        position = {
-          x: lastTile.position.x,
-          y: lastTile.position.y - (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) - spacing,
-        };
-        break;
-      default:
-        orientation = 'horizontal';
-        position = {
-          x: lastTile.position.x + tileWidth + spacing,
-          y: lastTile.position.y,
-        };
+    if (isVerticalSegment && lastTile.orientation === 'horizontal') {
+      // Transition from horizontal to vertical (going down)
+      orientation = isDouble ? 'horizontal' : 'vertical';
+      const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
+      position = {
+        x: lastTile.position.x + offset + spacing,
+        y: lastTile.position.y,
+      };
+    } else if (!isVerticalSegment && lastTile.orientation === 'vertical') {
+      // Transition from vertical to horizontal (going right)
+      orientation = isDouble ? 'vertical' : 'horizontal';
+      const offset = lastTile.orientation === 'vertical' ? tileHeight : tileWidth;
+      position = {
+        x: lastTile.position.x,
+        y: lastTile.position.y + offset + spacing,
+      };
+    } else if (isVerticalSegment) {
+      // Continue vertical (going down)
+      orientation = isDouble ? 'horizontal' : 'vertical';
+      const offset = lastTile.orientation === 'vertical' ? tileHeight : tileWidth;
+      position = {
+        x: lastTile.position.x,
+        y: lastTile.position.y + offset + spacing,
+      };
+    } else {
+      // Continue horizontal (going right)
+      orientation = isDouble ? 'vertical' : 'horizontal';
+      const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
+      position = {
+        x: lastTile.position.x + offset + spacing,
+        y: lastTile.position.y,
+      };
     }
   } else {
-    // Left side uses same logic but in reverse
-    const direction = directionIndex % 4; // 0: left, 1: up, 2: right, 3: down
+    // Left side: alternate between horizontal left and vertical up
+    const isVerticalSegment = segmentIndex % 2 === 1;
     
-    switch (direction) {
-      case 0: // Going left (horizontal)
-        orientation = isDouble ? 'vertical' : 'horizontal';
-        position = {
-          x: lastTile.position.x - (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) - spacing,
-          y: lastTile.position.y,
-        };
-        break;
-      case 1: // Going up (vertical)
-        orientation = isDouble ? 'horizontal' : 'vertical';
-        position = {
-          x: lastTile.position.x,
-          y: lastTile.position.y - (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) - spacing,
-        };
-        break;
-      case 2: // Going right (horizontal)
-        orientation = isDouble ? 'vertical' : 'horizontal';
-        position = {
-          x: lastTile.position.x + (lastTile.orientation === 'horizontal' ? tileWidth : tileHeight) + spacing,
-          y: lastTile.position.y,
-        };
-        break;
-      case 3: // Going down (vertical)
-        orientation = isDouble ? 'horizontal' : 'vertical';
-        position = {
-          x: lastTile.position.x,
-          y: lastTile.position.y + (lastTile.orientation === 'vertical' ? tileHeight : tileWidth) + spacing,
-        };
-        break;
-      default:
-        orientation = 'horizontal';
-        position = {
-          x: lastTile.position.x - tileWidth - spacing,
-          y: lastTile.position.y,
-        };
+    if (isVerticalSegment && lastTile.orientation === 'horizontal') {
+      // Transition from horizontal to vertical (going up)
+      orientation = isDouble ? 'horizontal' : 'vertical';
+      const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
+      position = {
+        x: lastTile.position.x - offset - spacing,
+        y: lastTile.position.y,
+      };
+    } else if (!isVerticalSegment && lastTile.orientation === 'vertical') {
+      // Transition from vertical to horizontal (going left)
+      orientation = isDouble ? 'vertical' : 'horizontal';
+      const offset = lastTile.orientation === 'vertical' ? tileHeight : tileWidth;
+      position = {
+        x: lastTile.position.x,
+        y: lastTile.position.y - offset - spacing,
+      };
+    } else if (isVerticalSegment) {
+      // Continue vertical (going up)
+      orientation = isDouble ? 'horizontal' : 'vertical';
+      const offset = lastTile.orientation === 'vertical' ? tileHeight : tileWidth;
+      position = {
+        x: lastTile.position.x,
+        y: lastTile.position.y - offset - spacing,
+      };
+    } else {
+      // Continue horizontal (going left)
+      orientation = isDouble ? 'vertical' : 'horizontal';
+      const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
+      position = {
+        x: lastTile.position.x - offset - spacing,
+        y: lastTile.position.y,
+      };
     }
   }
 
