@@ -199,14 +199,6 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
         drawDots(tile.left, centerX, topY, dotAreaSize);
         drawDots(tile.right, centerX, bottomY, dotAreaSize);
       }
-
-      // Draw tile number for debugging (optional)
-      if (placedTiles.length < 20 && zoom > 0.5) {
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = `${10 * zoom}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(`#${index + 1}`, x + scaledWidth / 2, y - 5 * zoom);
-      }
     });
 
   }, [placedTiles, offset, zoom, canvasSize.width, canvasSize.height]);
