@@ -69,8 +69,8 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     const zoomX = canvasSize.width / contentWidth;
     const zoomY = canvasSize.height / contentHeight;
     
-    // Set zoom limits: minimum 0.4 for readability, maximum 1.5 for desktop / 1 for mobile
-    const minZoom = isMobile ? 0.5 : 0.4;
+    // Set zoom limits: minimum 0.3 for very long games, maximum 1.5 for desktop / 1 for mobile
+    const minZoom = isMobile ? 0.3 : 0.25;
     const maxZoom = isMobile ? 1 : 1.5;
     const calculatedZoom = Math.min(zoomX, zoomY);
     const newZoom = Math.max(minZoom, Math.min(calculatedZoom, maxZoom));
