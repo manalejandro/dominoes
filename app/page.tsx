@@ -98,11 +98,11 @@ export default function Home() {
 
   // Show lobby if no game state or game mode is waiting
   if (!gameState || gameState.gameMode === 'waiting') {
-    if (roomId && gameState) {
+    if (roomId) {
       return (
         <WaitingRoom
           roomId={roomId}
-          players={gameState.players}
+          players={gameState?.players || []}
           currentPlayerId={currentPlayerId}
           onReady={setPlayerReady}
           onLeave={leaveRoom}
