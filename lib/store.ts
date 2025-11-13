@@ -43,7 +43,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingPlayerName: null,
 
   initSocket: () => {
-    const socket = io('http://localhost:3000', {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000';
+    const socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
     });
 
