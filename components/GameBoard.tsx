@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { PlacedTile, Position } from '@/lib/types';
 
 interface GameBoardProps {
@@ -17,7 +17,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   const [canvasSize, setCanvasSize] = useState({ width, height });
-  const [zoom, setZoom] = useState(1);
+  const initialZoom = 1;
 
   // Handle responsive canvas sizing
   useEffect(() => {
@@ -37,8 +37,8 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
   }, [width, height]);
 
   // Auto-zoom and auto-center to fit all tiles
-  useEffect(() => {
-    if (placedTiles.length === 0) return;
+  const autoFitValues = useMemo(() => {
+    if (placedTiles.length === 0) return null;
 
     // Calculate bounding box of all tiles
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -65,7 +65,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     const contentHeight = maxY - minY;
 
     // Calculate zoom to fit all tiles in viewport
-    const isMobile = window.innerWidth < 640;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
     const zoomX = canvasSize.width / contentWidth;
     const zoomY = canvasSize.height / contentHeight;
     
@@ -83,9 +83,12 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     const newOffsetX = canvasSize.width / 2 - centerX * newZoom;
     const newOffsetY = canvasSize.height / 2 - centerY * newZoom;
 
-    setZoom(newZoom);
-    setOffset({ x: newOffsetX, y: newOffsetY });
+    return { zoom: newZoom, offset: { x: newOffsetX, y: newOffsetY } };
   }, [placedTiles, canvasSize.width, canvasSize.height]);
+
+  // Derive effective zoom and offset values
+  const effectiveZoom = autoFitValues?.zoom ?? initialZoom;
+  const effectiveOffset = autoFitValues?.offset ?? offset;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,27 +121,27 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
     }
 
     // Draw placed tiles
-    placedTiles.forEach((placedTile, index) => {
+    placedTiles.forEach((placedTile) => {
       const { tile, position, orientation } = placedTile;
       const tileWidth = orientation === 'horizontal' ? 60 : 30;
       const tileHeight = orientation === 'horizontal' ? 30 : 60;
 
-      const x = position.x * zoom + offset.x;
-      const y = position.y * zoom + offset.y;
-      const scaledWidth = tileWidth * zoom;
-      const scaledHeight = tileHeight * zoom;
+      const x = position.x * effectiveZoom + effectiveOffset.x;
+      const y = position.y * effectiveZoom + effectiveOffset.y;
+      const scaledWidth = tileWidth * effectiveZoom;
+      const scaledHeight = tileHeight * effectiveZoom;
 
       // Draw tile background with shadow
       ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 5 * zoom;
-      ctx.shadowOffsetX = 2 * zoom;
-      ctx.shadowOffsetY = 2 * zoom;
+      ctx.shadowBlur = 5 * effectiveZoom;
+      ctx.shadowOffsetX = 2 * effectiveZoom;
+      ctx.shadowOffsetY = 2 * effectiveZoom;
 
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#1f2937';
-      ctx.lineWidth = 2 * zoom;
+      ctx.lineWidth = 2 * effectiveZoom;
 
-      const radius = 4 * zoom;
+      const radius = 4 * effectiveZoom;
       ctx.beginPath();
       ctx.moveTo(x + radius, y);
       ctx.lineTo(x + scaledWidth - radius, y);
@@ -158,7 +161,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
 
       // Draw center divider
       ctx.strokeStyle = '#6b7280';
-      ctx.lineWidth = 1 * zoom;
+      ctx.lineWidth = 1 * effectiveZoom;
       ctx.beginPath();
       if (orientation === 'horizontal') {
         ctx.moveTo(x + scaledWidth / 2, y);
@@ -170,7 +173,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
       ctx.stroke();
 
       // Draw dots
-      const dotRadius = Math.max(2, 2.5 * zoom);
+      const dotRadius = Math.max(2, 2.5 * effectiveZoom);
       ctx.fillStyle = '#1f2937';
 
       const drawDots = (value: number, dotX: number, dotY: number, size: number) => {
@@ -186,7 +189,7 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
         const leftX = x + scaledWidth / 4;
         const rightX = x + (scaledWidth * 3) / 4;
         const centerY = y + scaledHeight / 2;
-        const dotAreaSize = (scaledWidth / 2 - 6 * zoom);
+        const dotAreaSize = (scaledWidth / 2 - 6 * effectiveZoom);
 
         drawDots(tile.left, leftX, centerY, dotAreaSize);
         drawDots(tile.right, rightX, centerY, dotAreaSize);
@@ -194,14 +197,14 @@ export function GameBoard({ placedTiles, width = 1200, height = 700, className =
         const topY = y + scaledHeight / 4;
         const bottomY = y + (scaledHeight * 3) / 4;
         const centerX = x + scaledWidth / 2;
-        const dotAreaSize = (scaledHeight / 2 - 6 * zoom);
+        const dotAreaSize = (scaledHeight / 2 - 6 * effectiveZoom);
 
         drawDots(tile.left, centerX, topY, dotAreaSize);
         drawDots(tile.right, centerX, bottomY, dotAreaSize);
       }
     });
 
-  }, [placedTiles, offset, zoom, canvasSize.width, canvasSize.height]);
+  }, [placedTiles, effectiveOffset, effectiveZoom, canvasSize.width, canvasSize.height]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(true);

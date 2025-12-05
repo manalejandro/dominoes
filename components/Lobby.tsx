@@ -7,10 +7,10 @@ interface LobbyProps {
   onCreateRoom: (playerName: string) => void;
   onJoinRoom: (roomId: string, playerName: string) => void;
   onStartAI: (playerName: string) => void;
-  roomId: string | null;
+  roomId?: string | null;
 }
 
-export function Lobby({ onCreateRoom, onJoinRoom, onStartAI, roomId }: LobbyProps) {
+export function Lobby({ onCreateRoom, onJoinRoom, onStartAI }: LobbyProps) {
   const [playerName, setPlayerName] = useState('');
   const [joinRoomId, setJoinRoomId] = useState('');
   const [mode, setMode] = useState<'menu' | 'create' | 'join' | 'ai'>('menu');

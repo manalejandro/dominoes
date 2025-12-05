@@ -57,12 +57,14 @@ function startGame(roomId: string): GameState {
 }
 
 export async function GET(req: NextRequest) {
-  // @ts-ignore
+  // @ts-expect-error - NextRequest extended with socket server
   const res = req.res || req.nextUrl;
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!(res as any).socket?.server?.io) {
     console.log('Initializing Socket.IO server...');
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const httpServer: HTTPServer = (res as any).socket.server;
     const io = new SocketIOServer(httpServer, {
       path: '/api/socket',
@@ -167,7 +169,7 @@ export async function GET(req: NextRequest) {
 
           gameRooms.set(roomId, newGameState);
           io.to(roomId).emit('game-state-updated', newGameState);
-        } catch (error) {
+        } catch {
           socket.emit('invalid-move', 'Invalid move');
         }
       });
@@ -220,6 +222,7 @@ export async function GET(req: NextRequest) {
       });
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (res as any).socket.server.io = io;
   }
 

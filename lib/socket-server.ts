@@ -163,7 +163,7 @@ io.on('connection', (socket) => {
 
       gameRooms.set(roomId, newGameState);
       io.to(roomId).emit('game-state-updated', newGameState);
-    } catch (error) {
+    } catch {
       socket.emit('invalid-move', 'Invalid move');
     }
   });

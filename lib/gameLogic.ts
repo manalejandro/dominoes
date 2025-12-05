@@ -151,7 +151,7 @@ export function calculateTilePosition(
   const lastTile = side === 'right' ? board[board.length - 1] : board[0];
   let position: Position;
   let orientation: 'horizontal' | 'vertical' = 'horizontal';
-  let rotation = 0;
+  const rotation = 0;
 
   if (side === 'right') {
     const offset = lastTile.orientation === 'horizontal' ? tileWidth : tileHeight;
