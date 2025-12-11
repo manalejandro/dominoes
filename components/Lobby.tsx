@@ -7,10 +7,10 @@ interface LobbyProps {
   onCreateRoom: (playerName: string) => void;
   onJoinRoom: (roomId: string, playerName: string) => void;
   onStartAI: (playerName: string) => void;
-  roomId?: string | null;
+  roomId: string | null;
 }
 
-export function Lobby({ onCreateRoom, onJoinRoom, onStartAI }: LobbyProps) {
+export function Lobby({ onCreateRoom, onJoinRoom, onStartAI, roomId }: LobbyProps) {
   const [playerName, setPlayerName] = useState('');
   const [joinRoomId, setJoinRoomId] = useState('');
   const [mode, setMode] = useState<'menu' | 'create' | 'join' | 'ai'>('menu');
@@ -55,7 +55,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onStartAI }: LobbyProps) {
               placeholder="Enter your name"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors bg-white text-gray-900 placeholder-gray-500"
               maxLength={20}
               aria-label="Enter your player name"
               aria-required="true"
@@ -123,7 +123,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onStartAI }: LobbyProps) {
               placeholder="Enter Room ID"
               value={joinRoomId}
               onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors uppercase"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition-colors uppercase bg-white text-gray-900 placeholder-gray-500"
               maxLength={6}
               aria-label="Enter the 6-character room ID"
               aria-required="true"
