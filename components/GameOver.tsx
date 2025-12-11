@@ -7,11 +7,19 @@ import { Player } from '@/lib/types';
 interface GameOverProps {
   winner: Player | null;
   players: Player[];
+  currentPlayerId: string | null;
+  rematchRequests: string[];
   onPlayAgain: () => void;
+  onRequestRematch: () => void;
   onLeave: () => void;
+  isAIGame: boolean;
 }
 
-export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProps) {
+export function GameOver({ winner, players, currentPlayerId, rematchRequests, onPlayAgain, onRequestRematch, onLeave, isAIGame }: GameOverProps) {
+  const hasRequestedRematch = currentPlayerId ? rematchRequests.includes(currentPlayerId) : false;
+  const otherPlayersRequested = rematchRequests.filter(id => id !== currentPlayerId);
+  const waitingForOthers = hasRequestedRematch && otherPlayersRequested.length < players.length - 1;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -57,6 +65,7 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
               .map((player, index) => {
                 const score = player.tiles.reduce((sum, t) => sum + t.left + t.right, 0);
                 const isWinner = player.id === winner?.id;
+                const hasRequestedRematchPlayer = rematchRequests.includes(player.id);
 
                 return (
                   <motion.div
@@ -71,7 +80,14 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
                     <div className="flex items-center gap-3">
                       {isWinner && <span className="text-2xl">👑</span>}
                       <div>
-                        <div className="font-semibold text-gray-800">{player.name}</div>
+                        <div className="font-semibold text-gray-800 flex items-center gap-2">
+                          {player.name}
+                          {hasRequestedRematchPlayer && !isAIGame && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                              Wants rematch
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500">
                           {player.tiles.length} tiles remaining
                         </div>
@@ -89,15 +105,35 @@ export function GameOver({ winner, players, onPlayAgain, onLeave }: GameOverProp
         </div>
 
         <div className="space-y-3">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onPlayAgain}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-shadow"
-            aria-label="Start a new game"
-          >
-            Play Again
-          </motion.button>
+          {isAIGame ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onPlayAgain}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-shadow"
+              aria-label="Play again against AI"
+            >
+              Play Again
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onRequestRematch}
+              disabled={hasRequestedRematch}
+              className={`w-full py-3 rounded-lg font-semibold shadow-lg transition-shadow ${
+                hasRequestedRematch
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-xl'
+              }`}
+              aria-label={hasRequestedRematch ? 'Waiting for others to accept rematch' : 'Request rematch'}
+            >
+              {hasRequestedRematch 
+                ? (waitingForOthers ? 'Waiting for others...' : 'Starting rematch...')
+                : 'Request Rematch'
+              }
+            </motion.button>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.02 }}

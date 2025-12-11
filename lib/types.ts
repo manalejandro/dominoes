@@ -47,6 +47,7 @@ export type GameState = {
   isGameOver: boolean;
   turnsPassed: number;
   gameMode: 'waiting' | 'playing' | 'finished';
+  rematchRequests: string[]; // Player IDs who requested rematch
 };
 
 export type GameMove = {
@@ -64,6 +65,7 @@ export type SocketEvents = {
   'make-move': (roomId: string, move: GameMove) => void;
   'draw-tile': (roomId: string) => void;
   'leave-room': (roomId: string) => void;
+  'request-rematch': (roomId: string) => void;
   
   // Server to Client
   'room-created': (roomId: string) => void;
@@ -74,4 +76,6 @@ export type SocketEvents = {
   'player-joined': (player: Player) => void;
   'player-left': (playerId: string) => void;
   'error': (message: string) => void;
+  'rematch-requested': (playerId: string) => void;
+  'rematch-started': (gameState: GameState) => void;
 };

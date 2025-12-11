@@ -27,6 +27,7 @@ export default function Home() {
     leaveRoom,
     startAIGame,
     setError,
+    requestRematch,
   } = useGameStore();
 
   const [showRules, setShowRules] = useState(false);
@@ -362,8 +363,12 @@ export default function Home() {
         <GameOver
           winner={gameState.players.find(p => p.id === gameState.winner) || null}
           players={gameState.players}
+          currentPlayerId={currentPlayerId}
+          rematchRequests={gameState.rematchRequests || []}
           onPlayAgain={handlePlayAgain}
+          onRequestRematch={requestRematch}
           onLeave={leaveRoom}
+          isAIGame={roomId?.startsWith('AI-') || false}
         />
       )}
     </div>

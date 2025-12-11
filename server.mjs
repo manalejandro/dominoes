@@ -32,6 +32,7 @@ function createGameState(roomId) {
     isGameOver: false,
     turnsPassed: 0,
     gameMode: 'waiting',
+    rematchRequests: [],
   };
 }
 
@@ -115,10 +116,39 @@ function startGame(roomId) {
     currentPlayerIndex: startingPlayerIndex,
     boneyard,
     gameMode: 'playing',
+    rematchRequests: [],
   };
 
   gameRooms.set(roomId, newGameState);
   return newGameState;
+}
+
+// Start rematch with same players
+function startRematch(roomId, oldGameState) {
+  const { playerTiles, boneyard } = dealTiles(oldGameState.players.length);
+  
+  const updatedPlayers = oldGameState.players.map((player, index) => ({
+    ...player,
+    tiles: playerTiles[index],
+    score: 0,
+    isReady: true,
+  }));
+
+  const startingPlayerIndex = findStartingPlayer(updatedPlayers);
+
+  return {
+    id: roomId,
+    players: updatedPlayers,
+    currentPlayerIndex: startingPlayerIndex,
+    board: [],
+    boneyard,
+    boardEnds: [],
+    winner: null,
+    isGameOver: false,
+    turnsPassed: 0,
+    gameMode: 'playing',
+    rematchRequests: [],
+  };
 }
 
 app.prepare().then(() => {
@@ -433,6 +463,32 @@ app.prepare().then(() => {
         
         gameRooms.set(roomId, gameState);
         io.to(roomId).emit('player-left', socket.id);
+        io.to(roomId).emit('game-state-updated', gameState);
+      }
+    });
+
+    socket.on('request-rematch', (roomId) => {
+      const gameState = gameRooms.get(roomId);
+      if (!gameState || !gameState.isGameOver) return;
+
+      // Add player to rematch requests if not already there
+      if (!gameState.rematchRequests.includes(socket.id)) {
+        gameState.rematchRequests.push(socket.id);
+      }
+
+      // Check if all players have requested rematch
+      const allPlayersRequested = gameState.players.every(p => 
+        gameState.rematchRequests.includes(p.id)
+      );
+
+      if (allPlayersRequested) {
+        // Start a new game with the same players
+        const newGameState = startRematch(roomId, gameState);
+        gameRooms.set(roomId, newGameState);
+        io.to(roomId).emit('rematch-started', newGameState);
+      } else {
+        // Update state to show who has requested
+        gameRooms.set(roomId, gameState);
         io.to(roomId).emit('game-state-updated', gameState);
       }
     });

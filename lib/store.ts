@@ -26,6 +26,7 @@ interface GameStore {
   selectTile: (tile: DominoTile | null) => void;
   leaveRoom: () => void;
   setError: (error: string | null) => void;
+  requestRematch: () => void;
   
   // AI actions
   startAIGame: (playerName: string) => void;
@@ -132,6 +133,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     socket.on('error', (message: string) => {
       set({ error: message });
       setTimeout(() => set({ error: null }), 3000);
+    });
+
+    socket.on('rematch-started', (gameState: GameState) => {
+      set({ gameState, selectedTile: null });
+      
+      // Check if AI starts
+      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+      if (currentPlayer?.isAI) {
+        setTimeout(() => {
+          get().executeAITurn();
+        }, 1500);
+      }
     });
 
     set({ socket });
@@ -246,6 +259,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
+  requestRematch: () => {
+    const { socket, roomId, gameState, currentPlayerId } = get();
+    
+    // AI mode - start new game immediately
+    if (roomId?.startsWith('AI-') && gameState && currentPlayerId) {
+      const humanPlayer = gameState.players.find(p => !p.isAI);
+      if (humanPlayer) {
+        // Just restart with same settings
+        get().startAIGame(humanPlayer.name);
+      }
+      return;
+    }
+    
+    // Online mode - send rematch request to server
+    if (socket && roomId) {
+      socket.emit('request-rematch', roomId);
+    }
+  },
+
   setError: (error: string | null) => {
     set({ error });
     if (error) {
@@ -297,6 +329,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isGameOver: false,
       turnsPassed: 0,
       gameMode: 'playing',
+      rematchRequests: [],
     };
 
     set({ gameState, currentPlayerId: 'human', roomId });

@@ -33,6 +33,7 @@ function createGameState(roomId: string): GameState {
     isGameOver: false,
     turnsPassed: 0,
     gameMode: 'waiting',
+    rematchRequests: [],
   };
 }
 
